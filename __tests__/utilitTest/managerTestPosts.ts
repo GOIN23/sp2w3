@@ -3,6 +3,8 @@ import request from "supertest";
 import { ADMIN_AUTH } from "../../src/auth/authMiddleware";
 import { SETTINGS } from "../../src/seting/seting";
 import { PaginatorPosts, PostInputModelT, PostViewModelT } from "../../src/types/typePosts";
+import { CommentViewModel } from "../../src/types/typeCommen";
+
 
 const buff2 = Buffer.from(ADMIN_AUTH, "utf8");
 const codedAuth: string = buff2.toString("base64");
@@ -16,15 +18,6 @@ export const managerTestPosts = {
       .expect(SETTINGS.HTTPCOD.HTTPCOD_201);
 
     return post.body;
-  },
-  async updateBlog(sendInput: PostInputModelT, blogId: string) {
-    const blogs = await request(app)
-      .put(`${SETTINGS.PATH.BLOGS}/${blogId}`)
-      .set({ Authorization: "Basic " + codedAuth })
-      .send(sendInput)
-      .expect(SETTINGS.HTTPCOD.HTTPCOD_204);
-
-    return blogs.body;
   },
   async creatPostMany(blogId: string): Promise<PaginatorPosts> {
     await request(app)
@@ -84,4 +77,12 @@ export const managerTestPosts = {
 
     return resulv.body;
   },
+  async creatCommentPostOne(token: string, postId: string): Promise<CommentViewModel> {
+    const commentPost = await request(app)
+      .post(`${SETTINGS.PATH.POSTS}/${postId}/comments`)
+      .set({ Authorization: "Bearer " + token })
+      .send({ content: "adasds dasdas adas dad a" })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_201);
+    return commentPost.body
+  }
 };

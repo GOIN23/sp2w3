@@ -2,7 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { dbT } from "../../src/db/mongo-.db";
 import { authService } from "../../src/services/auth-service";
 import { emailAdapter } from "../../src/adapter/emailAdapter";
-import { testSeder } from "../utilitTest/testSede";
+import { managerTestUser } from "../utilitTest/managerTestUser";
 
 describe("Auth-integration", () => {
   beforeAll(async () => {
@@ -25,7 +25,7 @@ describe("Auth-integration", () => {
     });
 
     it("registration correct", async () => {
-      const userDto = testSeder.creatUserDto();
+      const userDto = managerTestUser.creatUserDto();
 
       const result = await registerUserUseCase(userDto);
 
@@ -40,13 +40,12 @@ describe("Auth-integration", () => {
       expect(emailAdapter.sendEmail).toHaveBeenCalledTimes(1);
     });
     it("should not register user twice", async () => {
-      const userDto = testSeder.creatUserDto();
-      await testSeder.registerUser(userDto);
+      const userDto = managerTestUser.creatUserDto();
+      await managerTestUser.registerUser(userDto);
 
       const result = await registerUserUseCase(userDto);
-   
+
     });
   });
 });
 
-//dffsdfs

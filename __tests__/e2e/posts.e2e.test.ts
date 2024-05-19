@@ -1,9 +1,4 @@
 import request from "supertest";
-
-let postsTestIdTest: PaginatorPosts = { pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] };
-// let blogTest: PaginatorBlog = { pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] };
-// let commentsTests: Paginator<CommentViewModel> = { pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] };
-
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { ADMIN_AUTH } from "../../src/auth/authMiddleware";
 import { dbT } from "../../src/db/mongo-.db";
@@ -13,8 +8,12 @@ import { PaginatorBlog } from "../../src/types/typeBlog";
 import { PaginatorPosts } from "../../src/types/typePosts";
 import { managerTestBlogs } from "../utilitTest/managerTestBlogs";
 import { managerTestPosts } from "../utilitTest/managerTestPosts";
-import { testSeder } from "../utilitTest/testSede";
+import { managerTestUser } from "../utilitTest/managerTestUser";
 
+
+
+
+const postsTestIdTest: PaginatorPosts = { pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] };
 const buff2 = Buffer.from(ADMIN_AUTH, "utf8");
 const codedAuth: string = buff2.toString("base64");
 
@@ -178,7 +177,6 @@ describe("checking endpoint on path /api/post", () => {
 
     const result = await managerTestPosts.creatPostMany(blog.id);
 
-    postsTestIdTest = result;
 
     await request(app)
       .get(SETTINGS.PATH.POSTS)
@@ -188,7 +186,7 @@ describe("checking endpoint on path /api/post", () => {
         page: 2,
         pageSize: 1,
         totalCount: 5,
-        items: [postsTestIdTest.items[1]],
+        items: [result.items[1]],
       });
 
     await request(app)
@@ -199,7 +197,7 @@ describe("checking endpoint on path /api/post", () => {
         page: 3,
         pageSize: 1,
         totalCount: 5,
-        items: [postsTestIdTest.items[2]],
+        items: [result.items[2]],
       });
 
     await request(app)
@@ -210,7 +208,7 @@ describe("checking endpoint on path /api/post", () => {
         page: 1,
         pageSize: 2,
         totalCount: 5,
-        items: [postsTestIdTest.items[0], postsTestIdTest.items[1]],
+        items: [result.items[0], result.items[1]],
       });
   });
 
@@ -279,63 +277,110 @@ describe("checking endpoint on path /api/post", () => {
       .expect(SETTINGS.HTTPCOD.HTTPCOD_401);
   });
 
-  // it("+ POSTS/:ID/COMMENTS METHOD=POST successful request creating comments", async () => {
-  //  const user =  await testSeder.registerUser({
-  //     email: "4e5.kn@mail.ru",
-  //     login: "fsasasfas",
-  //     password: "string",
-  //   });
+  it("+ POSTS/:ID/COMMENTS METHOD=POST successful request creating comments", async () => {
+    const user = await managerTestUser.registerUser({
+      email: "4e5.kn@mail.ru",
+      login: "fsasasfas",
+      password: "string",
+    });
+    const token = await request(app)
+      .post(`${SETTINGS.PATH.AUTH}/login`)
+      .send({
+        loginOrEmail: "4e5.kn@mail.ru", password: "string",
+      })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_200);
 
-  //   const token = await testSeder.loginUser("fsasasfas", "string");
+    const blog = await managerTestBlogs.creatBlogOne({
+      name: "string",
+      description: "string",
+      websiteUrl: "https://A9k3dqXmQg09DnH9pEgGN0-v64.yh9pEgmrf0I6mSDkAh-3H2-0M_SxHf5WEboprgrfa4jCt1-9i4cbFk_xfbEzkeLJ7",
+    });
 
-  //   const post = await request(app)
-  //     .post(`/api/posts/${postsTestIdTest.items[0].id}/comments`)
-  //     .set({ Authorization: "Bearer " + token.body.accessToken })
-  //     .send({ content: "adasds dasdas adas dad a" })
-  //     .expect(SETTINGS.HTTPCOD.HTTPCOD_201);
+    const posts = await managerTestPosts.creatPostOne({
+      blogId: blog.id,
+      title: "saday",
+      shortDescription: "jan",
+      content: "blas asdsa",
+    });
 
-  //   expect(post.body).toEqual({
-  //     id: expect.any(String),
-  //     commentatorInfo: { userId: expect.any(String), userLogin: "fsasasfas" },
-  //     content: "adasds dasdas adas dad a",
-  //     createdAt: expect.any(String),
-  //   });
-  // });
 
-  // it(" + POSTS/:ID/COMMENTS METHOD=GET check comment for receiving data", async () => {
-  //   const token = await testSeder.loginUser({
-  //     loginOrEmail: "fsasasfas",
-  //     password: "string",
-  //   });
+    const postComment = await managerTestPosts.creatCommentPostOne(token.body.accessToken, posts.id)
+    expect(postComment).toEqual({
+      id: expect.any(String),
+      commentatorInfo: { userId: expect.any(String), userLogin: "fsasasfas" },
+      content: "adasds dasdas adas dad a",
+      createdAt: expect.any(String),
+    });
+  });
 
-  //   const commentsArray = await testSeder.creatComments(postsTestIdTest.items[0].id, token.body.accessToken);
+  it(" + POSTS/:ID/COMMENTS METHOD=GET check comment for receiving data", async () => {
+    const user = await managerTestUser.registerUser({
+      email: "4e5.kn@mail.ru",
+      login: "fsasasfas",
+      password: "string",
+    });
+    const token = await request(app)
+      .post(`${SETTINGS.PATH.AUTH}/login`)
+      .send({
+        loginOrEmail: "4e5.kn@mail.ru", password: "string",
+      })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_200);
 
-  //   const comments = await request(app)
-  //     .get(`/api/posts/${postsTestIdTest.items[0].id}/comments`)
-  //     .set({ Authorization: "Bearer " + token.body.accessToken })
-  //     .expect(SETTINGS.HTTPCOD.HTTPCOD_200);
+    const blog = await managerTestBlogs.creatBlogOne({
+      name: "string",
+      description: "string",
+      websiteUrl: "https://A9k3dqXmQg09DnH9pEgGN0-v64.yh9pEgmrf0I6mSDkAh-3H2-0M_SxHf5WEboprgrfa4jCt1-9i4cbFk_xfbEzkeLJ7",
+    });
 
-  //   expect(comments.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 4, items: commentsArray.body.items });
-  // });
+    const posts = await managerTestPosts.creatPostOne({
+      blogId: blog.id,
+      title: "saday",
+      shortDescription: "jan",
+      content: "blas asdsa",
+    });
 
-  // it("- DELETE product by incorrect ID", async () => {
-  //   await request(app)
-  //     .delete("/api/posts/876328")
-  //     .set({ Authorization: "Basic " + codedAuth })
-  //     .expect(SETTINGS.HTTPCOD.HTTPCOD_404);
 
-  //   const res = await request(app).get("/api/posts/");
-  //   expect(res.body).toEqual(postsTestIdTest);
-  // });
+    const postComment = await managerTestPosts.creatCommentPostOne(token.body.accessToken, posts.id)
 
-  // it("+ DELETE product by  ID", async () => {
-  //   await request(app)
-  //     .delete(`/api/posts/${postsTestIdTest.items[0].id}`)
-  //     .set({ Authorization: "Basic " + codedAuth })
-  //     .expect(SETTINGS.HTTPCOD.HTTPCOD_204);
+    const comments = await request(app)
+      .get(`${SETTINGS.PATH.POSTS}/${posts.id}/comments`)
+      .set({ Authorization: "Bearer " + token.body.accessToken })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_200);
 
-  //   const res = await request(app).get("/api/posts/");
-  //   postsTestIdTest = res.body;
-  //   expect(res.body).toEqual(postsTestIdTest);
-  // });
+    expect(comments.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [postComment] });
+  });
+
+  it("- DELETE product by incorrect ID", async () => {
+    await request(app)
+      .delete(`${SETTINGS.PATH.POSTS}/3232`)
+      .set({ Authorization: "Basic " + codedAuth })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_404);
+
+    const res = await request(app).get("/api/posts/");
+    expect(res.body).toEqual(postsTestIdTest);
+  });
+
+  it("+ DELETE product by ID", async () => {
+    
+    const blog = await managerTestBlogs.creatBlogOne({
+      name: "string",
+      description: "string",
+      websiteUrl: "https://A9k3dqXmQg09DnH9pEgGN0-v64.yh9pEgmrf0I6mSDkAh-3H2-0M_SxHf5WEboprgrfa4jCt1-9i4cbFk_xfbEzkeLJ7",
+    });
+
+    const posts = await managerTestPosts.creatPostOne({
+      blogId: blog.id,
+      title: "saday",
+      shortDescription: "jan",
+      content: "blas asdsa",
+    });
+
+    await request(app)
+      .delete(`${SETTINGS.PATH.POSTS}/${posts.id}`)
+      .set({ Authorization: "Basic " + codedAuth })
+      .expect(SETTINGS.HTTPCOD.HTTPCOD_204);
+
+    const res = await request(app).get(SETTINGS.PATH.POSTS);
+    expect(res.body).toEqual(postsTestIdTest);
+  });
 });

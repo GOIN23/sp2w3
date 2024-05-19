@@ -160,7 +160,7 @@ describe("checking endpoint on path /api/blog", () => {
       name: "string",
       description: "string",
       websiteUrl: "https://A9k3dqXmQg09DnH9pEgGN0-v64.yh9pEgmrf0I6mSDkAh-3H2-0M_SxHf5WEboprgrfa4jCt1-9i4cbFk_xfbEzkeLJ7",
-    });
+    })
 
     await managerTestBlogs.updateBlog(
       {

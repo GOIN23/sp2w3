@@ -29,7 +29,6 @@ export const postsService = {
   },
 
   async createCommentPost(body: CommentInputModel, user: UserViewModel, IdPost: string): Promise<CommentViewModel | null> {
-    debugger;
     const newCommentPosts: CommentViewModelDb = {
       _id: String(new ObjectId()),
       content: body.content,
