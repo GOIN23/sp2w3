@@ -185,9 +185,6 @@ describe("checking endpoint on path /api/blog", () => {
     await managerTestBlogs.creatBlogsMany();
 
     const resul = await request(app).get(SETTINGS.PATH.BLOGS);
-
-    blogsTest = resul.body;
-
     await request(app)
       .get(SETTINGS.PATH.BLOGS)
       .query({ pageSize: 1, pageNumber: 2 })
@@ -196,7 +193,7 @@ describe("checking endpoint on path /api/blog", () => {
         page: 2,
         pageSize: 1,
         totalCount: 5,
-        items: [blogsTest.items[1]],
+        items: [resul.body.items[1]],
       });
 
     await request(app)
@@ -207,7 +204,7 @@ describe("checking endpoint on path /api/blog", () => {
         page: 3,
         pageSize: 1,
         totalCount: 5,
-        items: [blogsTest.items[2]],
+        items: [resul.body.items[2]],
       });
 
     await request(app)
@@ -218,10 +215,15 @@ describe("checking endpoint on path /api/blog", () => {
         page: 1,
         pageSize: 2,
         totalCount: 5,
-        items: [blogsTest.items[0], blogsTest.items[1]],
+        items: [resul.body.items[0], resul.body.items[1]],
       });
   });
   it("+ GET checking query - sortDirection and sortBy", async () => {
+
+    await managerTestBlogs.creatBlogsMany();
+
+    const resul = await request(app).get(SETTINGS.PATH.BLOGS).query({ sortBy: "name" });
+
     await request(app)
       .get(SETTINGS.PATH.BLOGS)
       .query({ sortBy: "name" }) // Since the default value is desc, the sorting will be in descending order. It turns out from the last letter of the alphabet to the first
@@ -230,7 +232,7 @@ describe("checking endpoint on path /api/blog", () => {
         page: 1,
         pageSize: 10,
         totalCount: 5,
-        items: [blogsTest.items[4], blogsTest.items[2], blogsTest.items[0], blogsTest.items[1], blogsTest.items[3]],
+        items: [...resul.body.items],
       });
 
     await request(app)
@@ -241,11 +243,17 @@ describe("checking endpoint on path /api/blog", () => {
         page: 1,
         pageSize: 10,
         totalCount: 5,
-        items: [blogsTest.items[3], blogsTest.items[1], blogsTest.items[0], blogsTest.items[2], blogsTest.items[4]],
+        items: [resul.body.items[4], resul.body.items[3], resul.body.items[2], resul.body.items[1], resul.body.items[0]],
       });
   });
 
   it("+ GET checking query - searchNameTerm", async () => {
+    await managerTestBlogs.creatBlogsMany();
+
+    const resul = await request(app).get(SETTINGS.PATH.BLOGS).query({ sortBy: "name" });
+
+    console.log(resul.body)
+
     await request(app)
       .get(SETTINGS.PATH.BLOGS)
       .query({ searchNameTerm: "ctri" })
@@ -254,7 +262,7 @@ describe("checking endpoint on path /api/blog", () => {
         page: 1,
         pageSize: 10,
         totalCount: 1,
-        items: [blogsTest.items[0]],
+        items: [resul.body.items[2]],
       });
   });
 
@@ -268,13 +276,19 @@ describe("checking endpoint on path /api/blog", () => {
     expect(res.body).toEqual(blogsTest);
   });
   it("+ DELETE product by ID", async () => {
+   const blog =  await managerTestBlogs.creatBlogOne({
+      name: "string",
+      description: "string",
+      websiteUrl: "https://A9k3dqXmQg09DnH9pEgGN0-v64.yh9pEgmrf0I6mSDkAh-3H2-0M_SxHf5WEboprgrfa4jCt1-9i4cbFk_xfbEzkeLJ7",
+    });
+
     await request(app)
-      .delete(`${SETTINGS.PATH.BLOGS}/${blogsTest.items[0].id}`)
+      .delete(`${SETTINGS.PATH.BLOGS}/${blog.id}`)
       .set({ Authorization: "Basic " + codedAuth })
       .expect(SETTINGS.HTTPCOD.HTTPCOD_204);
 
     const res = await request(app).get(SETTINGS.PATH.BLOGS);
 
-    expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 4, items: [...res.body.items] });
+    expect(res.body).toEqual({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [...res.body.items] });
   });
 });
